@@ -1,5 +1,7 @@
 package br.com.brenoborges.front_gestao_vagas.modules.candidate.controller;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,11 +14,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import br.com.brenoborges.front_gestao_vagas.modules.candidate.dto.ProfileUserDTO;
 import br.com.brenoborges.front_gestao_vagas.modules.candidate.dto.Token;
+import br.com.brenoborges.front_gestao_vagas.modules.candidate.service.ApplyJobService;
 import br.com.brenoborges.front_gestao_vagas.modules.candidate.service.CandidateService;
 import br.com.brenoborges.front_gestao_vagas.modules.candidate.service.FindJobService;
 import br.com.brenoborges.front_gestao_vagas.modules.candidate.service.ProfileCandidateService;
@@ -35,9 +39,17 @@ public class CandidateController {
     @Autowired
     private FindJobService findJobService;
 
+    @Autowired
+    private ApplyJobService applyJobService;
+
     @GetMapping("/login")
     public String login() {
         return "candidate/login";
+    }
+
+    @GetMapping("/create")
+    public String create() {
+        return "candidate/create";
     }
 
     @PostMapping("/signIn")
@@ -84,13 +96,26 @@ public class CandidateController {
 
         try {
             if (filter != null) {
-                // model.addAttribute("jobs", filter);
-                this.findJobService.execute(getToken(), filter);
+                var jobs = this.findJobService.execute(getToken(), filter);
+                model.addAttribute("jobs", jobs);
             }
         } catch (HttpClientErrorException e) {
             return "redirect:/candidate/login";
         }
         return "candidate/jobs";
+    }
+
+    @PostMapping("/jobs/apply")
+    @PreAuthorize("hasRole('CANDIDATE')")
+    public String applyJob(@RequestParam("jobId") UUID jobId) {
+
+        try {
+            this.applyJobService.execute(getToken(), jobId);
+        } catch (HttpClientErrorException e) {
+            return "redirect:/candidate/login";
+        }
+
+        return "redirect:/candidate/jobs";
     }
 
     private String getToken() {
