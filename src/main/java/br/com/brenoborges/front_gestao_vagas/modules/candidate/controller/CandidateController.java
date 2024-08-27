@@ -22,7 +22,7 @@ import br.com.brenoborges.front_gestao_vagas.modules.candidate.dto.CreateCandida
 import br.com.brenoborges.front_gestao_vagas.modules.candidate.dto.ProfileUserDTO;
 import br.com.brenoborges.front_gestao_vagas.modules.candidate.dto.Token;
 import br.com.brenoborges.front_gestao_vagas.modules.candidate.service.ApplyJobService;
-import br.com.brenoborges.front_gestao_vagas.modules.candidate.service.CandidateService;
+import br.com.brenoborges.front_gestao_vagas.modules.candidate.service.LoginCandidateService;
 import br.com.brenoborges.front_gestao_vagas.modules.candidate.service.CreateCandidateService;
 import br.com.brenoborges.front_gestao_vagas.modules.candidate.service.FindJobService;
 import br.com.brenoborges.front_gestao_vagas.modules.candidate.service.ProfileCandidateService;
@@ -34,7 +34,7 @@ import jakarta.servlet.http.HttpSession;
 public class CandidateController {
 
     @Autowired
-    private CandidateService candidateService;
+    private LoginCandidateService loginCandidateService;
 
     @Autowired
     private ProfileCandidateService profileCandidateService;
@@ -56,7 +56,7 @@ public class CandidateController {
     @PostMapping("/signIn")
     public String signIn(RedirectAttributes redirectAttributes, HttpSession session, String username, String password) {
         try {
-            Token token = this.candidateService.login(username, password);
+            Token token = this.loginCandidateService.login(username, password);
             var grants = token.getRoles().stream()
                     .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toString().toUpperCase()))
                     .toList();
@@ -130,11 +130,11 @@ public class CandidateController {
 
         try {
             this.createCandidateService.execute(candidate);
+            return "redirect:/candidate/login";
         } catch (HttpClientErrorException e) {
             model.addAttribute("error_message", FormatErrorMessage.formatErrorMessage(e.getResponseBodyAsString()));
+            model.addAttribute("candidate", candidate);
         }
-
-        model.addAttribute("candidate", candidate);
 
         return "candidate/create";
     }

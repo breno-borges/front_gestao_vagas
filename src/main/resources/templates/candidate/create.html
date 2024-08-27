@@ -13,7 +13,7 @@
         th:object="${candidate}">
 
         <div class="space-y-8 bg-zinc-950 roundend-md p-10">
-            <p class="text-white">Candidato, crie o seu cadastro gratuitamente</p>
+            <p class="text-white">Candidato, crie o seu cadastro gratuitamente.</p>
 
             <input type="text" name="username" th:field="*{username}"
                 class="bg-gray-50 text-gray-900 text-xd rounded w-96 block p-3 focus:outline-none focus:ring-grenn-600 focus:ring-2"
@@ -43,8 +43,8 @@
             <p class="text-red-400 hidden" id="password_error">As senhas não conferem</p>
 
             <button class="bg-green-900 w-96 p-4 rounded text-white hover:bg-green-700">Cadastre-se</button>
-            <a href="/candidate/login"
-                class="block text-center text-green-700 underline underline-offset-2 hover:text-green-600">Login</a>
+            <p class="mt-4 text-white">Já tem uma conta? <a href="/candidate/login"
+                    class="text-center text-green-700 hover:text-green-600">Faça login aqui</a></p>
         </div>
         <div class="text-white max-w-80 text-6xl flex items-center">
             Gestao de Vagas
