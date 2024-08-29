@@ -1,5 +1,7 @@
 package br.com.brenoborges.front_gestao_vagas.modules.company.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,9 +20,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import br.com.brenoborges.front_gestao_vagas.modules.company.dto.Token;
 import br.com.brenoborges.front_gestao_vagas.modules.company.dto.CreateCompanyDTO;
 import br.com.brenoborges.front_gestao_vagas.modules.company.dto.CreateJobDTO;
+import br.com.brenoborges.front_gestao_vagas.modules.company.dto.JobDTO;
 import br.com.brenoborges.front_gestao_vagas.modules.company.service.LoginCompanyService;
 import br.com.brenoborges.front_gestao_vagas.modules.company.service.CreateCompanyService;
 import br.com.brenoborges.front_gestao_vagas.modules.company.service.CreateJobUseCase;
+import br.com.brenoborges.front_gestao_vagas.modules.company.service.ListAllJobsCompanyService;
 import br.com.brenoborges.front_gestao_vagas.utils.FormatErrorMessage;
 import jakarta.servlet.http.HttpSession;
 
@@ -36,6 +40,9 @@ public class CompanyController {
 
     @Autowired
     private CreateJobUseCase createJobUseCase;
+
+    @Autowired
+    private ListAllJobsCompanyService listAllJobsCompanyService;
 
     @GetMapping("/login")
     public String login() {
@@ -96,11 +103,37 @@ public class CompanyController {
     public String createJobs(Model model, CreateJobDTO job) {
         try {
             this.createJobUseCase.execute(getToken(), job);
+            return "redirect:/company/jobs/list";
         } catch (HttpClientErrorException e) {
             return "redirect:/company/login";
         }
+    }
 
-        return "redirect:/company/jobs";
+    @GetMapping("/jobs/list")
+    @PreAuthorize("hasRole('COMPANY')")
+    public String list(Model model) {
+
+        try {
+            List<JobDTO> listJobs = this.listAllJobsCompanyService.execute(getToken());
+            model.addAttribute("jobs", listJobs);
+        } catch (HttpClientErrorException e) {
+            return "redirect:/company/login";
+        }
+        return "company/list";
+    }
+
+    @GetMapping("/logout")
+    public String logout(RedirectAttributes redirectAttributes, HttpSession session) {
+        try {
+            SecurityContextHolder.getContext().setAuthentication(null);
+            SecurityContext securityContext = SecurityContextHolder.getContext();
+            session.setAttribute("SPRING_SECURITY_CONTEXT", securityContext);
+            session.setAttribute("token", null);
+            return "redirect:/company/login";
+        } catch (HttpClientErrorException e) {
+            redirectAttributes.addFlashAttribute("error_message", "Deslogando");
+            return "redirect:/company/login";
+        }
     }
 
     private String getToken() {
